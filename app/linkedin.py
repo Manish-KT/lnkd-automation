@@ -399,15 +399,16 @@ class LinkedIn:
         Guardrail: Checks the profile page for indicators that we shouldn't attempt to connect.
         Returns a status string if a stopping condition is met, otherwise None.
         """
-        # Check for 1st-degree connection indicators
-        if self._find_text_button(container, ["Message", "Remove Connection"]):
+        # "Remove Connection" is the only definitive proof of a 1st-degree connection.
+        # (We do not check for "Message" here anymore to avoid Open Profile false positives).
+        if self._find_text_button(container, ["Remove Connection"]):
             log.info("Guardrail: Profile is already a 1st-degree connection.")
             return "already_connected"
             
         # Check for pending invitation indicators
         if self._find_text_button(container, ["Pending", "Withdraw"]):
             log.info("Guardrail: Connection request is already pending.")
-            return "skipped" # You can change this to "pending" if you update tracker.py
+            return "skipped"
             
         return None
 
@@ -425,7 +426,7 @@ class LinkedIn:
             except NoSuchElementException:
                 container = self.driver.find_element(By.TAG_NAME, "body")
 
-            # Guardrail 1: Check if we should even try to connect
+            # Guardrail 1: Early checks for Pending or Remove Connection
             early_status = self._evaluate_profile_status(container)
             if early_status:
                 return early_status, ""
@@ -442,7 +443,7 @@ class LinkedIn:
                         self._click(more_btn)
                         self._sleep(1, 2)
                         
-                        # Re-evaluate status just in case it was hiding in the dropdown
+                        # Re-evaluate status just in case "Remove Connection" was hiding in the dropdown
                         dropdown_status = self._evaluate_profile_status(container)
                         if dropdown_status:
                             return dropdown_status, ""
@@ -452,8 +453,14 @@ class LinkedIn:
                     except Exception:
                         pass
                         
-            # If neither a link nor a button was found, skip
+            # Guardrail 3: If neither a link nor a button was found, they can't be connected with.
             if not connect_link and not connect_btn:
+                # NOW it is safe to check for Message. If there is no Connect button at all, 
+                # but they have a Message button, they are likely 1st degree.
+                if self._find_text_button(container, ["Message"]):
+                    log.info("Guardrail: No Connect option found, but Message is available (1st degree).")
+                    return "already_connected", ""
+                    
                 log.info("Guardrail: No Connect option available (likely out of network).")
                 return "skipped", ""
 
@@ -490,7 +497,7 @@ class LinkedIn:
                 
                 self._sleep(2, 4)
                 
-                # Guardrail 3: Check for LinkedIn restriction/error modals
+                # Guardrail 4: Check for LinkedIn restriction/error modals
                 error_xp = "//*[contains(normalize-space(), 'Invitation not sent') or contains(normalize-space(), 'weeks after withdrawing') or contains(normalize-space(), 'reached your connection limit')]"
                 error_elements = self.driver.find_elements(By.XPATH, error_xp)
                 
