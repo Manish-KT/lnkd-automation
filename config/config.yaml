@@ -1,0 +1,153 @@
+# =============================================================================
+# LinkedIn Outreach Configuration
+# =============================================================================
+# Modify this file to change the bot's behavior.
+# No code changes are required.
+# =============================================================================
+
+search:
+  # ---------------------------------------------------------------------------
+  # Company Search
+  # ---------------------------------------------------------------------------
+
+  # Search each keyword independently.
+  keywords:
+    - "roofing company"
+    - "HVAC company"
+    - "plumbing company"
+    - "American Contract Group, Inc"
+    - "electrical contractor"
+    - "construction company"
+    - "landscaping company"
+    - "cleaning service"
+    - "property management"
+    - "dental clinic"
+    - "accounting firm"
+
+  # Maximum companies to process for each keyword.
+  max_companies_per_keyword: 10
+
+  # Maximum employee profiles to process from each company.
+  max_people_per_company: 1
+
+  # Maximum pages of employee results to scan.
+  max_pages_per_company: 5
+
+
+  # ---------------------------------------------------------------------------
+  # Employee Filters
+  # ---------------------------------------------------------------------------
+
+  # Prioritize decision makers who can approve projects directly.
+  target_titles:
+    - owner
+    - founder
+    - ceo
+    - president
+    - director
+    - VP
+
+  # ---------------------------------------------------------------------------
+  # Company Filters
+  # ---------------------------------------------------------------------------
+
+  # English-speaking markets with good SMB adoption.
+  target_locations:
+    - United States
+    - Canada
+    - United Kingdom
+    - Australia
+    - Texas
+
+
+  # LinkedIn Industries
+  # target_industries:
+  #   - Marketing Services
+  #   - Advertising Services
+  #   - Accounting
+  #   - Legal Services
+  #   - Real Estate
+  #   - Medical Practice
+  #   - Hospital & Health Care
+  #   - Staffing and Recruiting
+  #   - Management Consulting
+  #   - Business Consulting and Services
+
+
+  # Companies small enough to make quick decisions.
+  target_company_sizes:
+    - "2-10 employees"
+    - "11-50 employees"
+
+
+# =============================================================================
+# Connection Settings
+# =============================================================================
+
+connection:
+
+  # Maximum connection requests sent during a single day.
+  daily_limit: 15
+
+  # Whether to attach a personalized note.
+  #
+  # Note:
+  # LinkedIn only allows notes in certain interfaces/accounts.
+  send_note: false
+
+  # Available placeholders:
+  #   {first_name}
+  #   {company}
+  note_template: >
+    Hi {first_name}, I came across {company} and really admire the work
+    you're doing. I'd love to connect.
+
+
+# =============================================================================
+# Timing Configuration
+# =============================================================================
+# All delays are randomized between the configured min and max values.
+# Increasing delays makes the automation appear more human-like.
+# =============================================================================
+
+delays:
+
+  # Delay between UI interactions (clicks, navigation, etc.).
+  action_min: 3
+  action_max: 7
+
+  # Delay between processing individual people.
+  between_people_min: 8
+  between_people_max: 20
+
+  # Delay before moving to the next company.
+  between_companies_min: 20
+  between_companies_max: 45
+
+
+# =============================================================================
+# Local Paths
+# =============================================================================
+
+paths:
+
+  # Chrome profile used to preserve your LinkedIn login session.
+  chrome_profile: "./chrome_profile"
+
+  # Excel tracker containing all processed contacts.
+  tracker_file: "./data/outreach.xlsx"
+
+  # Optional custom Chrome executable.
+  # Leave empty to use the system-installed Chrome.
+  chrome_binary: ""
+
+
+# =============================================================================
+# Debug Options
+# =============================================================================
+
+debug:
+
+  # Highlights elements as the bot interacts with them.
+  # Useful for development and troubleshooting.
+  focus_highlight: true
