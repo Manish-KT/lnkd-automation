@@ -9,6 +9,9 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 from supabase import create_client, Client
 
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
+
 # --- Excel Configuration ---
 COLUMNS = [
     "Timestamp",
@@ -53,8 +56,8 @@ class Tracker:
         # ==========================================
         # 1. Initialize Supabase
         # ==========================================
-        supabase_url = os.environ.get("SUPABASE_URL")
-        supabase_key = os.environ.get("SUPABASE_KEY")
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_KEY")
         
         if not supabase_url or not supabase_key:
             raise ValueError(
