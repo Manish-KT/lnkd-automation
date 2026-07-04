@@ -183,43 +183,71 @@ class LinkedIn:
         skip_companies = {company.strip().lower() for company in (skip_companies or set())}
         q = urllib.parse.quote_plus(keyword)
         
+        # 1. Navigate to the initial search page
         self._goto(f"{self.BASE}/search/results/companies/?keywords={q}")
         self._sleep(3, 5)
 
+        # 2. Apply all dropdown filters on the first page
         self._apply_company_filters(locations or [], company_sizes or [], industries or [])
         self._sleep(2, 4)
 
-        self.driver.execute_script("window.scrollBy(0, 800);")
-        self._sleep(1, 2)
-
-        anchors = self.driver.find_elements(By.CSS_SELECTOR, "a[href*='/company/']")
+        # Capture the URL with all applied filter parameters so we can paginate it
+        base_search_url = self.driver.current_url
+        
         seen, results = set(), []
+        page = 1
 
-        for anchor in anchors:
-            self._highlight(anchor, color="#ffea00", label="COMPANY")
-            if self.focus_highlight:
-                time.sleep(0.15)
+        # 3. Paginate until we hit the limit or run out of results
+        while len(results) < limit:
+            if page > 1:
+                page_url = self._with_page(base_search_url, page)
+                self._goto(page_url)
+                self._sleep(3, 5)
 
-            href = (anchor.get_attribute("href") or "").split("?")[0].rstrip("/")
-            if "/company/" not in href:
-                continue
+            # Scroll to the bottom to ensure all lazy-loaded company cards render
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self._sleep(2, 4)
 
-            try:
-                slug = href.split("/company/")[1].split("/")[0]
-            except IndexError:
-                continue
+            anchors = self.driver.find_elements(By.CSS_SELECTOR, "a[href*='/company/']")
+            new_companies_on_page = 0
 
-            if not slug or slug in seen:
-                continue
-            seen.add(slug)
+            for anchor in anchors:
+                self._highlight(anchor, color="#ffea00", label="COMPANY")
+                if self.focus_highlight:
+                    time.sleep(0.15)
 
-            name = (anchor.text or "").strip().splitlines()[0] if anchor.text else slug
-            if name.strip().lower() in skip_companies:
-                continue
+                href = (anchor.get_attribute("href") or "").split("?")[0].rstrip("/")
+                if "/company/" not in href:
+                    continue
 
-            results.append(Company(name=name, url=f"{self.BASE}/company/{slug}/"))
-            if len(results) >= limit:
+                try:
+                    slug = href.split("/company/")[1].split("/")[0]
+                except IndexError:
+                    continue
+
+                if not slug or slug in seen:
+                    continue
+                
+                seen.add(slug)
+                new_companies_on_page += 1
+
+                name = (anchor.text or "").strip().splitlines()[0] if anchor.text else slug
+                if name.strip().lower() in skip_companies:
+                    continue
+
+                results.append(Company(name=name, url=f"{self.BASE}/company/{slug}/"))
+                
+                if len(results) >= limit:
+                    break
+
+            log.info("Page %d: Found %d companies (Total valid so far: %d/%d)", page, new_companies_on_page, len(results), limit)
+
+            # Guardrail: If a page loads but yields 0 new company profiles, we've reached the end
+            if new_companies_on_page == 0:
+                log.info("No more company results found. Ending company search early.")
                 break
+                
+            page += 1
 
         return results
 
