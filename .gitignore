@@ -2,3 +2,4 @@ venv/
 chrome_profile/
 data/
 __pycache__/
+.env
