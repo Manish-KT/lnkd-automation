@@ -65,7 +65,7 @@ class Tracker:
             )
             
         self.supabase: Client = create_client(supabase_url, supabase_key)
-        self.table_name = "outreach"
+        self.table_name = "lnkd_connections" 
         
         # ==========================================
         # 2. Initialize Local Excel File
