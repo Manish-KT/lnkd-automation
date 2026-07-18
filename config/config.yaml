@@ -53,6 +53,23 @@ search:
 
   # English-speaking markets with good SMB adoption.
   target_locations:
+    - Tennessee 
+    - Ohio
+    - North Carolina
+    - Wisconsin
+    - Texas
+    - Indiana
+    - Arkansas
+    - Pennsylvania 
+    - Florida
+    - Michigan
+    - Illinois
+    - Missouri
+    - Alabama
+    - Minnesota
+    - Oklahoma
+    - Connecticut
+    - Massachusetts
     - United States
     - Canada
     - United Kingdom
